@@ -62,6 +62,6 @@ async def root():
 @app.get("/health")  # Changed from route to get
 async def health():
     return {'status': 'healthy'}
-# if __name__ == "__main__":
-#     import uvicorn
-#     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
