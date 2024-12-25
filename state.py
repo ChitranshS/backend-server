@@ -8,4 +8,6 @@ class ReWOO(MessagesState):
     result: str
     should_end : bool
     thread_id: str
+    hotel_determined: str
+    intent: str
     

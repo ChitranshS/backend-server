@@ -3,3 +3,4 @@ _ignore
 .env
 *.env
 .venv
+ui/node_modules

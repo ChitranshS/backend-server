@@ -7,10 +7,8 @@ def node(state):
     if "inner_messages" in updated_state:
         state['messages'] = updated_state['inner_messages']
         print(colored(state['messages'][-1].content,"yellow"))
-    if "task_ready" in updated_state:
-        state['task'] = updated_state['task']
-        print(colored(state['task'],"yellow"))
+    elif "should_end" in updated_state and updated_state['should_end']:
         state['task_ready'] = True
-    if "should_execute" in updated_state and updated_state['should_execute']:
-        state['should_execute'] = True
+        state['hotel_determined'] = updated_state['hotel_determined']
+        state['intent'] = updated_state['intent']
     return state

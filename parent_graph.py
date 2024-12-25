@@ -1,3 +1,4 @@
+from platform import node
 from langgraph.graph import END, StateGraph, START
 from state import ReWOO
 from init_node import node as init_node
@@ -64,6 +65,12 @@ async def run_agent(query,thread_id_provider):
                                 if isinstance(messages[-1], AIMessage):
                                         print(colored(messages[-1].content, "red"))
                                         yield (messages[-1])
+                        elif node_name == "other_node":
+                            if isinstance(node_value, dict):
+                                hotel_determined = node_value['hotel_determined']
+                                intent = node_value['intent']
+                                # for message in messages:
+                                yield (AIMessage(content=f"Hotel Determined: {hotel_determined} , Intent: {intent} , Moving to existing workflow"))
                         
 
                                
