@@ -11,7 +11,7 @@ interface Thread {
 
 interface SidebarProps {
   selectedThreadId: string | null;
-  onSelectThread: (threadId: string) => void;
+  onSelectThread: (threadId: string | null) => void;
 }
 
 function Sidebar({ selectedThreadId, onSelectThread }: SidebarProps) {
@@ -49,16 +49,6 @@ function Sidebar({ selectedThreadId, onSelectThread }: SidebarProps) {
     if (selectedThreadId === threadId) {
       onSelectThread(updatedThreads[0]?.id || null);
     }
-  };
-
-  const updateLastMessage = (threadId: string, message: string) => {
-    const updatedThreads = threads.map(thread => 
-      thread.id === threadId 
-        ? { ...thread, lastMessage: message, timestamp: new Date().toISOString() } 
-        : thread
-    );
-    setThreads(updatedThreads);
-    localStorage.setItem('chatThreads', JSON.stringify(updatedThreads));
   };
 
   return (

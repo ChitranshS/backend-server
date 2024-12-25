@@ -17,7 +17,7 @@ function App() {
             />
           </Box>
           <Box flex={1} bg="gray.800" borderRadius="lg" boxShadow="lg">
-            <Chat selectedThreadId={selectedThreadId} />
+            {selectedThreadId !== null && <Chat selectedThreadId={selectedThreadId} />}
           </Box>
         </HStack>
       </Container>
