@@ -3,13 +3,18 @@ from langgraph.graph import END, StateGraph, START
 from state import ReWOO
 from init_node import node as init_node
 from dotenv import load_dotenv
-from utils.checkpointer import checkpointer
+# from utils.checkpointer import checkpointer
 from chat_node import node as chat_node
 from langgraph.checkpoint.memory import MemorySaver
 from termcolor import colored
 from langchain_core.messages import HumanMessage, AIMessage
 from other_node import node as other_node
-
+from langfuse.callback import CallbackHandler
+langfuse_handler = CallbackHandler(
+    public_key="pk-lf-d48176d4-6fff-4ffc-a006-e886c772b294",
+    secret_key="sk-lf-42d5b8f1-e2a8-4ed4-ae24-f4b7e30eb48a",
+    host="https://cloud.langfuse.com"
+)
 
 
 # Add nodes
@@ -34,7 +39,7 @@ graph.add_conditional_edges(
 
 graph.add_edge("a_prime", END)
 
-# checkpointer = MemorySaver()
+checkpointer = MemorySaver()
 
 
 graph_runner = graph.compile(checkpointer=checkpointer)
@@ -44,7 +49,8 @@ async def run_agent(query,thread_id_provider):
     config = {
             "configurable": {
             "thread_id": thread_id_provider
-        }
+        },
+        "callbacks": [langfuse_handler]
     }
 
     formatted_query = query
@@ -65,7 +71,7 @@ async def run_agent(query,thread_id_provider):
                                 if isinstance(messages[-1], AIMessage):
                                         print(colored(messages[-1].content, "red"))
                                         yield (messages[-1])
-                        elif node_name == "other_node":
+                        elif node_name == "a_prime":
                             if isinstance(node_value, dict):
                                 hotel_determined = node_value['hotel_determined']
                                 intent = node_value['intent']

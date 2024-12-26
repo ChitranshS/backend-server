@@ -21,7 +21,7 @@ model = ChatTogether(
 )
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import START, MessagesState, StateGraph
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_core.messages import SystemMessage
 
 class ChatState(MessagesState):
     should_end: bool
@@ -673,33 +673,34 @@ def call_model(state: ChatState):
     
     """
     prompt = """ 
-            You work for Sterling hotels and you are the chain manager agent. Your primary focus is to guide the user to select a hotel as per their requirements and our hotel availability at the given locations.
+            You work for Sterling hotels and you are the chain manager agent. Your only goal is to guide the user to select a hotel as per their requirements and our hotel availability at the given locations.
             
             The users can either be in any one of these two categories:
                 1. One who knows exactly about the hotel property that they want to interact with.
                 2. One who is trying to find the best hotel for them based on their preferences.You are the manager agent who guides the user to select a hotel at a location as per their requirements and Sterling's hotel locations.
             
 
-            Your only task is to determine the best hotel for the user based on their preferences.
+            Your sole task is to determine the best hotel for the user based on their preferences.
             If you have the hotel determined and then the user asks you to do anything from the below options then return the JSON output mentioned below without waiting for "CONFIRM":
-            - book or similar
-            - cancel or similar
-            - modify a booking or similar
-            - check availability about rooms or any other enquiry about rooms or similar
+            - User wants to book hotel or has a similar intent
+            - User wants to cancel their booking or has a similar intent
+            - User wants to modify an existing booking or has a similar intent
+            - User wants to know about the price and availability of the rooms in a hotel or has a similar intent. 
+            Note:User may not mention these exact words or use similar words you have to determine the intent and then act.
+            Note:You can't ask the user specific details about their stay or rooms such as no of guests or room type or dates. 
             
-            You primary focus is to guide the user to select a hotel as per their requirements and our hotel availability at the given locations.
-            When you believe you figured out the user's preferred hotel:
+            When you have figured out the user's preferred hotel:
             - Return the JSON output mentioned below:
-
-            Output Format Rules:
-            - When sending the final task, only output this JSON object.
-            - Format must be exactly:
-                {{
-                "should_end": "True",
-                "hotel_determined": hotel_name_finalised(null if not determined),
-                "intent": intent
-                }}
-            - No other text should be included before or after the JSON.
+                Output Format Rules:
+                - When sending the final task, only output this JSON object.
+                - Format must be exactly:
+                    {{
+                    "should_end": "True",
+                    "hotel_determined": hotel_name_finalised(null if not determined),
+                    "intent": intent
+                    }}
+                - No other text should be included before or after the JSON.
+            
             Error Handling:
             - If users request something outside the available options, politely explain what is possible
             - If users seem confused, break down the options into simpler choices
@@ -733,9 +734,9 @@ def call_model(state: ChatState):
 
 workflow = StateGraph(state_schema=ChatState)
 
-workflow.add_node("model", call_model)
-workflow.add_edge(START, "model")
-workflow.add_edge("model",END)
+workflow.add_node("chat_model", call_model)
+workflow.add_edge(START, "chat_model")
+workflow.add_edge("chat_model",END)
 
 # Add simple in-memory checkpointer
 # memory = MemorySaver()
@@ -749,7 +750,7 @@ def stream_graph_updates(state):
     )
     config = {"configurable": {"thread_id": state['thread_id']}}
     for state in app.stream(init_state,config):
-            ai_response = state['model']['messages'][-1].content
+            ai_response = state['chat_model']['messages'][-1].content
             print(colored(ai_response,"green"))
             ai_response= ai_response.replace('```json\n', '').replace('\n```', '')
             try:
@@ -757,7 +758,7 @@ def stream_graph_updates(state):
                 if "should_end" in response_data and response_data['should_end']:
                     obj = response_data
             except json.JSONDecodeError:
-                obj = {"inner_messages":state['model']['messages']}
+                obj = {"inner_messages":state['chat_model']['messages']}
                 pass
             return obj
 
