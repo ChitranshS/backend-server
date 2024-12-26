@@ -715,8 +715,7 @@ def call_model(state: ChatState):
             - Only output the JSON after receiving "CONFIRM"
             - Never include any other text with the JSON output
             - You cannot mention what role you have in Sterling Hotels.
-            - You are not allowed to assume anything. If the user asks about hotel amenties then don't assume anything.
-            - If the user asks you to book,cancel,modify,check availability about rooms or any other similar task then return the JSON output mentioned without waiting for "CONFIRM"
+            - You are not allowed to assume anything about the hotel information. If the user asks about hotel information which you don't have then don't assume anything.
 
             Details about Sterling Chain of Hotels:
             <locations>{kb_mock_data}</locations>
