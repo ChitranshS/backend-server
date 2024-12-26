@@ -14,7 +14,7 @@ load_dotenv()
 model = ChatTogether(
     api_key = os.getenv("TOGETHER_API_KEY"),
     model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
-    temperature=0.2,
+    temperature=0,
     max_tokens=None,
     timeout=None,
     max_retries=2,
