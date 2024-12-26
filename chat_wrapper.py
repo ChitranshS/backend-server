@@ -14,11 +14,21 @@ load_dotenv()
 model = ChatTogether(
     api_key = os.getenv("TOGETHER_API_KEY"),
     model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
-    temperature=0,
+    temperature=0.2,
     max_tokens=None,
     timeout=None,
     max_retries=2,
 )
+
+# model = ChatOpenAI(
+#     api_key = os.getenv("OPENAI_KEY"),
+#     model="gpt-4o",
+#     temperature=0.2,
+#     max_tokens=None,
+#     timeout=None,
+#     max_retries=2,
+# )
+
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import START, MessagesState, StateGraph
 from langchain_core.messages import SystemMessage
@@ -123,13 +133,6 @@ def call_model(state: ChatState):
         <city>Pushkar</city>
     </resort>
     <resort>
-        <id>14</id>
-        <name>BRAND ASSOCIATIONS</name>
-        <zone>South</zone>
-        <state>Tamil Nadu</state>
-        <city>Chennai</city>
-    </resort>
-    <resort>
         <id>15</id>
         <name>Sterling Athirappilly</name>
         <zone>South</zone>
@@ -156,13 +159,6 @@ def call_model(state: ChatState):
         <zone>South</zone>
         <state>Kerala</state>
         <city>Wayanad</city>
-    </resort>
-    <resort>
-        <id>19</id>
-        <name>PHOTOS VIDEOS CLIENT FEED BACKS (ALL RESORTS)</name>
-        <zone>North</zone>
-        <state>Delhi</state>
-        <city>Delhi</city>
     </resort>
     <resort>
         <id>20</id>
@@ -682,7 +678,7 @@ def call_model(state: ChatState):
 
             Your sole task is to determine the best hotel for the user based on their preferences.
             If you have the hotel determined and then the user asks you to do anything from the below options then return the JSON output mentioned below without waiting for "CONFIRM":
-            - User wants to book hotel or has a similar intent
+            - User wants to book or know more about a hotel or has a similar intent
             - User wants to cancel their booking or has a similar intent
             - User wants to modify an existing booking or has a similar intent
             - User wants to know about the price and availability of the rooms in a hotel or has a similar intent. 
@@ -690,9 +686,8 @@ def call_model(state: ChatState):
             Note:You can't ask the user specific details about their stay or rooms such as no of guests or room type or dates. 
             
             When you have figured out the user's preferred hotel:
-            - Return the JSON output mentioned below:
+            - Return only the JSON output mentioned below:
                 Output Format Rules:
-                - When sending the final task, only output this JSON object.
                 - Format must be exactly:
                     {{
                     "should_end": "True",
@@ -704,20 +699,27 @@ def call_model(state: ChatState):
             Error Handling:
             - If users request something outside the available options, politely explain what is possible
             - If users seem confused, break down the options into simpler choices
+            - If the user asks for room availability, prices or other details then ask their permission to look for the hotel and once you have permision then only return the JSON without waiting for "CONFIRM".
             - If users change their mind, be flexible and help them find the right alternative
+            - If the users give vague inputs then recommend them options to choose from.
+            - The user might not mention "Sterling" in their request. Assume that they meant "Sterling Hotels"
             - If users don't type "CONFIRM", continue the conversation without outputting the JSON
 
             Remember these instructions carefully:
-            - It should feel very conversational to the user.
+            - It should feel very conversational to the user. The output must be properly formatted with spaces and new lines (if not JSON).
             - Do not ask for all the inputs at once.
             - You have to be conversational like a support staff.
-            - You don't have to beat around the bush a lot be direct but polite and keep hospitality in mind.
-            - Give one liners as response and act like a human persona working as a support staff with a friendly tone with a fictional name.
+            - Act like a human persona working as a support staff with a friendly tone with a fictional name.
+            - Keep your responses short and concise.
             - Only output the JSON after receiving "CONFIRM"
             - Never include any other text with the JSON output
             - You cannot mention what role you have in Sterling Hotels.
-            - You are not allowed to assume anything about the hotel information. If the user asks about hotel information which you don't have then don't assume anything.
-
+            - You cannot ask the user what any preferences about the room.
+            - If the user has mentioned the location of the hotel or the name of the hotel return the JSON output mentioned below without waiting for "CONFIRM".
+            - You are not allowed to assume anything about the hotel room availability. 
+            - If the user asks about hotel information which you don't have then don't assume anything and also don't tell the user that you don't know.
+            
+            
             Details about Sterling Chain of Hotels:
             <locations>{kb_mock_data}</locations>
             
