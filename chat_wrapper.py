@@ -681,9 +681,13 @@ def call_model(state: ChatState):
             
 
             Your only task is to determine the best hotel for the user based on their preferences.
-            If you have the hotel determined and then the user asks you to book,cancel,modify,check availability about rooms or any other enquiry about rooms then return the JSON output mentioned below without waiting for "CONFIRM":
-            You primary focus is to guide the user to select a hotel as per their requirements and our hotel availability at the given locations.
+            If you have the hotel determined and then the user asks you to do anything from the below options then return the JSON output mentioned below without waiting for "CONFIRM":
+            - book or similar
+            - cancel or similar
+            - modify a booking or similar
+            - check availability about rooms or any other enquiry about rooms or similar
             
+            You primary focus is to guide the user to select a hotel as per their requirements and our hotel availability at the given locations.
             When you believe you figured out the user's preferred hotel:
             - Return the JSON output mentioned below:
 
@@ -696,24 +700,23 @@ def call_model(state: ChatState):
                 "intent": intent
                 }}
             - No other text should be included before or after the JSON.
-            - The task_determined should clearly specify which tool and method was chosen
             Error Handling:
             - If users request something outside the available options, politely explain what is possible
             - If users seem confused, break down the options into simpler choices
             - If users change their mind, be flexible and help them find the right alternative
             - If users don't type "CONFIRM", continue the conversation without outputting the JSON
 
-            Remember:
+            Remember these instructions carefully:
             - It should feel very conversational to the user.
             - Do not ask for all the inputs at once.
             - You have to be conversational like a support staff.
             - You don't have to beat around the bush a lot be direct but polite and keep hospitality in mind.
-            - Give one short liners as response and act like a human persona with a fictional name.
+            - Give one liners as response and act like a human persona working as a support staff with a friendly tone with a fictional name.
             - Only output the JSON after receiving "CONFIRM"
             - Never include any other text with the JSON output
             - You cannot mention what role you have in Sterling Hotels.
-            - If the user asks about hotel amenties then don't assume details if not provided to you.
-            - If the user asks you to book,cancel,modify,check availability about rooms or any other task then return the JSON output mentioned without waiting for "CONFIRM"
+            - You are not allowed to assume anything. If the user asks about hotel amenties then don't assume anything.
+            - If the user asks you to book,cancel,modify,check availability about rooms or any other similar task then return the JSON output mentioned without waiting for "CONFIRM"
 
             Details about Sterling Chain of Hotels:
             <locations>{kb_mock_data}</locations>
@@ -785,31 +788,31 @@ def stream_graph_updates(state):
             #     pass
 #
 
-def chat_subgraph_wrapper(state):
-    app = workflow.compile(checkpointer=memory)
-    init_state = ChatState(
-        messages=state['messages'],
-        state_variables=str(list(state.keys())),
-        has_optimal_path = state['has_optimal_path']
-    )
-    config = {"configurable": {"thread_id": state['thread_id']}}
-    for state in app.stream(init_state,config):
-            ai_response = state['model']['messages'][-1].content
-            # print(colored(state['model']['messages'],"red"))
-            ai_response= ai_response.replace('```json\n', '').replace('\n```', '')
+# def chat_subgraph_wrapper(state):
+#     app = workflow.compile(checkpointer=memory)
+#     init_state = ChatState(
+#         messages=state['messages'],
+#         state_variables=str(list(state.keys())),
+#         has_optimal_path = state['has_optimal_path']
+#     )
+#     config = {"configurable": {"thread_id": state['thread_id']}}
+#     for state in app.stream(init_state,config):
+#             ai_response = state['model']['messages'][-1].content
+#             # print(colored(state['model']['messages'],"red"))
+#             ai_response= ai_response.replace('```json\n', '').replace('\n```', '')
 
-            try:
-                response_data = json.loads(ai_response)
-                if "should_end" in response_data and response_data['should_end']:
-                    final_task.append(response_data.get('task_determined'))
-                    print(colored(final_task[-1],"yellow"))
-                    obj = {"task_ready":True,"task":final_task[-1]}
-                elif "should_execute" in response_data and response_data['should_execute']:
-                    obj = {"should_execute":True}
-            except json.JSONDecodeError:
-                obj = {"inner_messages":state['model']['messages']}
-                pass
-            return obj
+#             try:
+#                 response_data = json.loads(ai_response)
+#                 if "should_end" in response_data and response_data['should_end']:
+#                     final_task.append(response_data.get('task_determined'))
+#                     print(colored(final_task[-1],"yellow"))
+#                     obj = {"task_ready":True,"task":final_task[-1]}
+#                 elif "should_execute" in response_data and response_data['should_execute']:
+#                     obj = {"should_execute":True}
+#             except json.JSONDecodeError:
+#                 obj = {"inner_messages":state['model']['messages']}
+#                 pass
+#             return obj
             
             
 

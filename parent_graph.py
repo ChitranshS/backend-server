@@ -7,7 +7,7 @@ from utils.checkpointer import checkpointer
 from chat_node import node as chat_node
 from langgraph.checkpoint.memory import MemorySaver
 from termcolor import colored
-from langchain_core.messages import BaseMessage, HumanMessage, ToolMessage, AIMessage
+from langchain_core.messages import HumanMessage, AIMessage
 from other_node import node as other_node
 
 
@@ -16,7 +16,7 @@ from other_node import node as other_node
 graph = StateGraph(ReWOO)
 graph.add_node("init_node", init_node)
 graph.add_node("chat", chat_node)
-graph.add_node("other_node", other_node)
+graph.add_node("a_prime", other_node)
 
 
 # Add edges
@@ -27,12 +27,12 @@ graph.add_conditional_edges(
     "chat",
     lambda x: {
         False: END,
-        True: ["other_node"]
+        True: ["a_prime"]
     }[x["task_ready"]]
 )
 
 
-graph.add_edge("other_node", END)
+graph.add_edge("a_prime", END)
 
 # checkpointer = MemorySaver()
 
@@ -80,17 +80,17 @@ async def run_agent(query,thread_id_provider):
 
 
 
-# from langchain_core.runnables.graph import CurveStyle, MermaidDrawMethod, NodeStyles
-# import os
+from langchain_core.runnables.graph import CurveStyle, MermaidDrawMethod, NodeStyles
+import os
 
-# # Generate the Mermaid PNG
-# png_data = graph_runner.get_graph().draw_mermaid_png(
-#     draw_method=MermaidDrawMethod.API,
-# )
+# Generate the Mermaid PNG
+png_data = graph_runner.get_graph().draw_mermaid_png(
+    draw_method=MermaidDrawMethod.API,
+)
 
-# # Save the PNG data to a file
-# output_path = "graph_visualization.png"
-# with open(output_path, "wb") as f:
-#     f.write(png_data)
+# Save the PNG data to a file
+output_path = "graph_visualization.png"
+with open(output_path, "wb") as f:
+    f.write(png_data)
 
-# print(f"Graph visualization saved to: {os.path.abspath(output_path)}")
+print(f"Graph visualization saved to: {os.path.abspath(output_path)}")
