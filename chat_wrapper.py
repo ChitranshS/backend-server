@@ -7,27 +7,27 @@ from langgraph.graph import END, StateGraph, START
 from dotenv import load_dotenv
 from langgraph.graph import MessagesState
 from langgraph.checkpoint.memory import MemorySaver
-from langchain_together import ChatTogether
-from utils.checkpointer import checkpointer
+# from langchain_together import ChatTogether
+# from utils.checkpointer import checkpointer
 import json
 load_dotenv()
-model = ChatTogether(
-    api_key = os.getenv("TOGETHER_API_KEY"),
-    model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
-    temperature=0,
-    max_tokens=None,
-    timeout=None,
-    max_retries=2,
-)
-
-# model = ChatOpenAI(
-#     api_key = os.getenv("OPENAI_KEY"),
-#     model="gpt-4o",
-#     temperature=0.2,
+# model = ChatTogether(
+#     api_key = os.getenv("TOGETHER_API_KEY"),
+#     model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
+#     temperature=0,
 #     max_tokens=None,
 #     timeout=None,
 #     max_retries=2,
 # )
+
+model = ChatOpenAI(
+    api_key = os.getenv("OPENAI_KEY"),
+    model="gpt-4o",
+    temperature=0.2,
+    max_tokens=None,
+    timeout=None,
+    max_retries=2,
+)
 
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import START, MessagesState, StateGraph
@@ -741,16 +741,16 @@ workflow.add_edge(START, "chat_model")
 workflow.add_edge("chat_model",END)
 
 # Add simple in-memory checkpointer
-# memory = MemorySaver()
+# checkpointer = MemorySaver()
 
 # TEMP
 app = workflow.compile(checkpointer=checkpointer)
 
-def stream_graph_updates(state):
+def stream_graph_updates(messages,conversation_id):
     init_state = ChatState(
-        messages=state['messages']
+        messages=messages
     )
-    config = {"configurable": {"thread_id": state['thread_id']}}
+    config = {"configurable": {"thread_id": conversation_id}}
     for state in app.stream(init_state,config):
             ai_response = state['chat_model']['messages'][-1].content
             print(colored(ai_response,"green"))
@@ -766,14 +766,15 @@ def stream_graph_updates(state):
 
 
 
-# while True:
-#         user_input = input("User: ")
-#         if user_input.lower() in ["quit", "exit", "q"]:
-#             print("Goodbye!")
-#             break
-#         response_data = stream_graph_updates(user_input)
-#         if "should_end" in response_data and response_data['should_end']:
-#             break
+while True:
+        user_input = input("User: ")
+        thread_id = "hehehehe"
+        if user_input.lower() in ["quit", "exit", "q"]:
+            print("Goodbye!")
+            break
+        response_data = stream_graph_updates(user_input,thread_id)
+        if "should_end" in response_data and response_data['should_end']:
+            break
 #
     
             # ai_response= ai_response.replace('```json\n', '').replace('\n```', '')
@@ -788,33 +789,7 @@ def stream_graph_updates(state):
             # except json.JSONDecodeError:
             #     obj = {"inner_messages":state['model']['messages']}
             #     pass
-#
 
-# def chat_subgraph_wrapper(state):
-#     app = workflow.compile(checkpointer=memory)
-#     init_state = ChatState(
-#         messages=state['messages'],
-#         state_variables=str(list(state.keys())),
-#         has_optimal_path = state['has_optimal_path']
-#     )
-#     config = {"configurable": {"thread_id": state['thread_id']}}
-#     for state in app.stream(init_state,config):
-#             ai_response = state['model']['messages'][-1].content
-#             # print(colored(state['model']['messages'],"red"))
-#             ai_response= ai_response.replace('```json\n', '').replace('\n```', '')
-
-#             try:
-#                 response_data = json.loads(ai_response)
-#                 if "should_end" in response_data and response_data['should_end']:
-#                     final_task.append(response_data.get('task_determined'))
-#                     print(colored(final_task[-1],"yellow"))
-#                     obj = {"task_ready":True,"task":final_task[-1]}
-#                 elif "should_execute" in response_data and response_data['should_execute']:
-#                     obj = {"should_execute":True}
-#             except json.JSONDecodeError:
-#                 obj = {"inner_messages":state['model']['messages']}
-#                 pass
-#             return obj
             
             
 
